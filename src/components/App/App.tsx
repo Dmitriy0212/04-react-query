@@ -29,36 +29,6 @@ function App() {
       notifyNoMovies();
     }
   }, [data]);
-
-  /*useEffect(() => {
-    if (!query) return;
-
-    const load = async () => {
-      try {
-        setIsLoading(true);
-        setIsError(false);
-
-        const data = await movieService(query, page);
-
-        if (data.results.length === 0) {
-          if (page === 1) notifyNoMovies();
-          setMovies([]);
-          return;
-        }
-
-        setMovies(data.results);
-      } catch (e) {
-        console.error(e);
-        setIsError(true);
-        setMovies([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    load();
-  }, [query, page]);
-*/
   const closeModal = () => {
     setSelectedMovie(null);
   };
@@ -79,7 +49,7 @@ function App() {
       )}
       {!isLoading && !isError && data?.results?.length > 0 && (
         <MovieGrid
-          movies={data.results}
+          movies={data?.results || []}
           onSelect={(movie) => {
             setSelectedMovie(movie);
           }}
