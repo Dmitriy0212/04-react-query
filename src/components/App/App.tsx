@@ -18,7 +18,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: [query, page],
+    queryKey: ["movies", query, page],
 
     queryFn: () => movieService(query, page),
     enabled: query !== "",
