@@ -1,4 +1,5 @@
 import "modern-normalize";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import css from "./App.module.css";
 import SearchBar from "../SearchBar/SearchBar";
 import { movieService } from "../../services/movieService";
@@ -10,18 +11,26 @@ import { notifyNoMovies } from "../../services/toast";
 import MovieModal from "../MovieModal/MovieModal";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import Pagination from "../ReactPaginate/ReactPaginate";
 
 function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-
-  const [movies, setMovies] = useState<Movie[]>([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: [query, page],
 
+    queryFn: () => movieService(query, page),
+    enabled: query !== "",
+    placeholderData: keepPreviousData,
+  });
   useEffect(() => {
+    if (data && data.results.length === 0) {
+      notifyNoMovies();
+    }
+  }, [data]);
+
+  /*useEffect(() => {
     if (!query) return;
 
     const load = async () => {
@@ -49,10 +58,11 @@ function App() {
 
     load();
   }, [query, page]);
-
+*/
   const closeModal = () => {
     setSelectedMovie(null);
   };
+  const totalPages = data?.total_pages ?? 0;
 
   return (
     <div className={css.app}>
@@ -60,25 +70,22 @@ function App() {
         onSubmit={(q) => {
           setQuery(q);
           setPage(1);
-          setMovies([]);
         }}
       />
-
       {isLoading && <Loader />}
-
       {isError && <ErrorMessage />}
-
-      {!isLoading && !isError && movies.length > 0 && (
+      {isSuccess && totalPages > 1 && (
+        <Pagination totalPages={totalPages} page={page} setPage={setPage} />
+      )}
+      {!isLoading && !isError && data?.results?.length > 0 && (
         <MovieGrid
-          movies={movies}
+          movies={data.results}
           onSelect={(movie) => {
             setSelectedMovie(movie);
           }}
         />
       )}
-
       <Toaster position="top-center" reverseOrder={false} />
-
       {selectedMovie && (
         <MovieModal onClose={closeModal} movie={selectedMovie} />
       )}
